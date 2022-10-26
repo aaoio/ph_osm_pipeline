@@ -1,6 +1,8 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres \
+    import PostgresOperator
 from airflow.utils.task_group import TaskGroup
 from datetime import datetime
 import scripts.overpass as op
@@ -22,6 +24,12 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         env={'LOGICAL_DATE': '{{ ds }}'}
     )
 
+    build_db_task = PostgresOperator(
+        task_id='build_db_task',
+        postgres_conn_id='postgres_localhost',
+        sql='sql/db_build.sql',
+    )
+
     overpass_task = PythonOperator(
         task_id = 'extract_overpass',
         python_callable=op.extract_overpass,
@@ -34,4 +42,4 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         provide_context=True
     )
 
-mkdir_task >> [overpass_task, wikidata_task]
+mkdir_task >> build_db_task >> [overpass_task, wikidata_task]
