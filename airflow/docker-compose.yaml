@@ -63,6 +63,9 @@ x-airflow-common:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
+    - type: bind
+      source: ../data/raw/
+      target: /opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -204,6 +207,21 @@ services:
       - bash
       - -c
       - airflow
+  
+  database:
+    image: postgres
+    ports:
+        - 5432:5432
+    restart: always
+    environment:
+        POSTGRES_USER: osm
+        POSTGRES_PASSWORD: osm
+        POSTGRES_DB: osm
+    volumes:
+        - type: bind
+          source: ../data/db
+          target: /var/lib/postgresql/data
+
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.

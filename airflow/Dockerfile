@@ -11,7 +11,7 @@ RUN apt-get update                             \
     ca-certificates curl firefox-esr           \
  && rm -fr /var/lib/apt/lists/*                \
  && curl -L https://github.com/mozilla/geckodriver/releases/download/v0.32.0/geckodriver-v0.32.0-linux64.tar.gz | tar xz -C /usr/local/bin \
- && apt-get remove -y ca-certificates curl
+ && apt-get remove -y curl
 
 USER airflow
 WORKDIR $AIRFLOW_HOME
