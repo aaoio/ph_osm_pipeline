@@ -22,7 +22,10 @@ def get_national_geom(download_dir_now, now):
 
     geojson_path = os.path.join(
         download_dir_now,
-        f'{now.year}_{now.month}_{now.day}_l2_national_overpass.geojson'
+        f'{now.strftime("%Y")}_'+
+        f'{now.strftime("%m")}_'+
+        f'{now.strftime("%d")}_'+
+        'l2_national_overpass.geojson'
     )
 
     overpass = Overpass()
@@ -63,7 +66,13 @@ def get_overpass_turbo_geojson(query, download_dir_now, now):
             )
         )
     finally:
-        continue_element.click()
+        try:
+            continue_element.click()
+        except UnboundLocalError():
+            print('''"Large amounts of data" warning was not found.
+            Attempting to click "export element"...
+            ''')
+            pass
 
     time.sleep(5)
     export_element = driver.find_element(By.XPATH, export_XPath)
@@ -103,23 +112,26 @@ def get_overpass_turbo_geojson(query, download_dir_now, now):
     query_admin_level = query[55]
     
     l_names = {
-        '3': 'regional',
-        '4': 'provincial',
-        '6': 'city_municipality'
+        '3': 'regions',
+        '4': 'provinces',
+        '6': 'cities_municipalities'
     }
 
-    rename_to = f'{now.year}_{now.month}_{now.day}\
-_l{admin_level}_{l_names[admin_level]}_overpass.geojson'
+    rename_to = f'{now.strftime("%Y")}_{now.strftime("%m")}\
+_{now.strftime("%d")}_l{admin_level}_{l_names[admin_level]}_\
+overpass.geojson'
 
     if ((time_since_download.days <= 1) and
         (admin_level==query_admin_level)):
-        os.rename(
-            newest_file_path,
-            os.path.join(
+        renamed_geojson_path = os.path.join(
                 download_dir_now,
                 rename_to
             )
+        os.rename(
+            newest_file_path,
+            renamed_geojson_path
         )
+    return renamed_geojson_path
 
 def extract_overpass(**kwargs):
     
@@ -130,11 +142,21 @@ def extract_overpass(**kwargs):
     download_dir_now = os.path.join(
         DATA_DIR,
         'overpass',
-        f'{datetime_now.year}_{datetime_now.month}_{datetime_now.day}'
+        f'{datetime_now.strftime("%Y")}_'+
+        f'{datetime_now.strftime("%m")}_'+
+        f'{datetime_now.strftime("%d")}'
     )
 
+    filepaths = []
     queries = [r_query, p_query, cm_query]
     for q in queries:
-        get_overpass_turbo_geojson(q, download_dir_now, datetime_now)
+        filepath = get_overpass_turbo_geojson(
+            q,
+            download_dir_now,
+            datetime_now
+        )
+        filepaths.append(filepath)
     
     get_national_geom(download_dir_now, datetime_now)
+
+    return filepaths
