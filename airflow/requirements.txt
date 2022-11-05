@@ -1,5 +1,7 @@
+apache-airflow-providers-apache-spark
 geojson
 OSMPythonTools
 pandas
+pyspark==3.2.2
 requests
 selenium
