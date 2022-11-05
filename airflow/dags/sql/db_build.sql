@@ -32,28 +32,29 @@ CREATE TABLE IF NOT EXISTS changesets."users"(
 CREATE TABLE IF NOT EXISTS changesets."regions"(
     region_relation_id INTEGER NOT NULL PRIMARY KEY,
     region_name VARCHAR NOT NULL,
-    region_wikidata_entry INTEGER NOT NULL,
+    region_wikidata_item INTEGER NOT NULL,
     region_population INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS changesets."provinces"(
     province_relation_id INTEGER NOT NULL PRIMARY KEY,
     province_name VARCHAR NOT NULL,
-    province_wikidata_entry INTEGER NOT NULL,
+    province_wikidata_item INTEGER NOT NULL,
     province_population INTEGER NOT NULL,
     province_is_within VARCHAR,
-    province_is_within_wikidata_entry INTEGER NOT NULL
+    province_is_within_wikidata_item INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS changesets."cities_municipalities"(
     city_municipality_relation_id INTEGER NOT NULL PRIMARY KEY,
     city_municipality_name VARCHAR NOT NULL,
-    city_municipality_wikidata_entry INTEGER,
+    city_municipality_wikidata_item INTEGER,
     city_municipality_type VARCHAR,
     city_municipality_income_class VARCHAR,               
     city_municipality_population INTEGER,
     city_municipality_is_within VARCHAR,
-    city_municipality_is_within_wikidata_entry INTEGER
+    city_municipality_is_within_wikidata_item INTEGER,
+    city_municipality_area NUMERIC
 );
 
 CREATE TABLE IF NOT EXISTS changesets."osm_changesets"(
