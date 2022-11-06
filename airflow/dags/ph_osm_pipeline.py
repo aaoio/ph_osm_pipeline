@@ -3,9 +3,13 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres \
     import PostgresOperator
+from airflow.contrib.operators.spark_submit_operator \
+    import SparkSubmitOperator
 from airflow.utils.task_group import TaskGroup
 from datetime import datetime
+import scripts.geog_tables as gt
 import scripts.overpass as op
+import scripts.sequence as sq
 import scripts.wikidata as wd
 
 with DAG(
@@ -42,4 +46,33 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         provide_context=True
     )
 
-mkdir_task >> build_db_task >> [overpass_task, wikidata_task]
+    sequence_range_task = PythonOperator(
+        task_id='sequence_range_task',
+        python_callable=sq.get_sequence_range,
+        op_args=['postgres_localhost'],
+        do_xcom_push=True
+    )
+
+    download_repls = SparkSubmitOperator(
+        task_id='dl_repls',
+        application='/usr/local/spark/app/dl_replication_files.py',
+        name='spark_app',
+        conn_id='spark_local',
+        verbose=1,
+        application_args=[sequence_range_task.output]
+    )
+
+    geog_task = PythonOperator(
+        task_id='geog_dims',
+        python_callable=gt.geog_dims,
+        op_args = [
+            wikidata_task.output,
+            overpass_task.output,
+            'postgres_localhost'
+        ]
+    )
+    
+
+build_db_task >> sequence_range_task >> download_repls
+build_db_task >> geog_task
+mkdir_task >> [overpass_task, wikidata_task] >> geog_task

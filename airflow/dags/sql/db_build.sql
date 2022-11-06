@@ -19,6 +19,34 @@ CREATE TABLE IF NOT EXISTS staging."stg_osm_changesets"(
     username VARCHAR
 );
 
+CREATE TABLE IF NOT EXISTS staging."stg_regions"(
+    region_relation_id INTEGER NOT NULL PRIMARY KEY,
+    region_name VARCHAR NOT NULL,
+    region_wikidata_item INTEGER NOT NULL,
+    region_population INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS staging."stg_provinces"(
+    province_relation_id INTEGER NOT NULL PRIMARY KEY,
+    province_name VARCHAR NOT NULL,
+    province_wikidata_item INTEGER NOT NULL,
+    province_population INTEGER NOT NULL,
+    province_is_within VARCHAR,
+    province_is_within_wikidata_item INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS staging."stg_cities_municipalities"(
+    city_municipality_relation_id INTEGER NOT NULL PRIMARY KEY,
+    city_municipality_name VARCHAR NOT NULL,
+    city_municipality_wikidata_item INTEGER,
+    city_municipality_type VARCHAR,
+    city_municipality_income_class VARCHAR,               
+    city_municipality_population INTEGER,
+    city_municipality_is_within VARCHAR,
+    city_municipality_is_within_wikidata_item INTEGER,
+    city_municipality_area NUMERIC
+);
+
 CREATE TABLE IF NOT EXISTS state."sequences"(
     sequence BIGINT NOT NULL PRIMARY KEY,
     last_timestamp TIMESTAMP WITHOUT TIME ZONE
