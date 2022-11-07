@@ -45,7 +45,7 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.4.1}
-  build: .
+  build: ./docker_airflow
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor 
@@ -60,9 +60,9 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
+    - ../airflow/dags:/opt/airflow/dags
+    - ../airflow/logs:/opt/airflow/logs
+    - ../airflow/plugins:/opt/airflow/plugins
     - type: bind
       source: ../data/raw/
       target: /opt/airflow/data
@@ -243,7 +243,7 @@ services:
 
   # Spark
   spark-master:
-    image: spark_py_reqs
+    build: ./docker_spark
     user: root
     hostname: spark
     networks:
@@ -269,7 +269,7 @@ services:
       - 7077:7077
   
   spark-worker-1:
-    image: spark_py_reqs
+    build: ./docker_spark
     user: root
     networks:
       - default_net
@@ -294,7 +294,7 @@ services:
         target: /usr/local/spark/resources
 
   spark-worker-2:
-    image: spark_py_reqs
+    build: ./docker_spark
     user: root
     networks:
       - default_net
@@ -319,7 +319,7 @@ services:
         target: /usr/local/spark/resources
 
   spark-worker-3:
-    image: spark_py_reqs
+    build: ./docker_spark
     user: root
     networks:
       - default_net
