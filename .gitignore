@@ -1,3 +1,8 @@
-sequencedag.py
 __pycache__
 *.log
+*.jar
+*.json
+*.gz
+*.geojson
+data/db
+airflow/logs/scheduler/latest
