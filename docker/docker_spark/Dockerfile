@@ -2,6 +2,7 @@ FROM bitnami/spark:3.2.2
 
 USER root
 COPY requirements.txt /tmp/requirements.txt
+COPY sources.list /etc/apt/
 
 RUN apt-get update \
  && apt-get install -y curl \
