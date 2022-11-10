@@ -80,16 +80,22 @@ mkdir -p /usr/local/data/raw/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         verbose=1
     )
     
-    set_sequence = PythonOperator(
+    set_sequence_task = PythonOperator(
         task_id='set_sequence',
         python_callable=sq.insert_last_repl_sequence,
         op_args=['postgres_localhost'],
         provide_context=True
     )
 
+    load_changesets_task = PostgresOperator(
+        task_id='load_changesets',
+        postgres_conn_id='postgres_localhost',
+        sql='sql/load_changesets.sql',
+    )
+
     
 
-build_db_task >> sequence_range_overpass_paths_task >> repls_task >> set_sequence
+build_db_task >> sequence_range_overpass_paths_task >> repls_task >> load_changesets_task >> set_sequence_task
 build_db_task >> stage_geog_task
 mkdir_task >> [overpass_task, wikidata_task] >> stage_geog_task >> load_geog_task
 overpass_task >> sequence_range_overpass_paths_task
