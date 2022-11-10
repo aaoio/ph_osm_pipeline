@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS staging."stg_cities_municipalities"(
 
 CREATE TABLE IF NOT EXISTS state."sequences"(
     sequence BIGINT NOT NULL PRIMARY KEY,
-    last_timestamp TIMESTAMP WITHOUT TIME ZONE
+    last_run DATE
 );
 
 CREATE TABLE IF NOT EXISTS changesets."users"(

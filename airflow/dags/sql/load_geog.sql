@@ -155,3 +155,8 @@ INSERT INTO changesets.cities_municipalities(
         CURRENT_DATE,
         '9999-12-31'::date
     FROM n;
+
+-- Truncate staging tables
+TRUNCATE staging.stg_regions;
+TRUNCATE staging.stg_provinces;
+TRUNCATE staging.stg_cities_municipalities;
