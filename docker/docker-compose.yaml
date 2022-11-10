@@ -65,7 +65,7 @@ x-airflow-common:
     - ../airflow/plugins:/opt/airflow/plugins
     - type: bind
       source: ../data/raw/
-      target: /opt/airflow/data
+      target: /usr/local/data/raw
     - type: bind
       source: ../spark/app
       target: /usr/local/spark/app
@@ -207,7 +207,7 @@ services:
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
-      - .:/sources
+      - ../airflow:/sources
 
   airflow-cli:
     <<: *airflow-common
@@ -256,8 +256,8 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - type: bind
-        source: ../data/raw
-        target: /usr/local/data
+        source: ../data/raw/
+        target: /usr/local/data/raw/
       - type: bind
         source: ../spark/app
         target: /usr/local/spark/app
@@ -284,8 +284,8 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - type: bind
-        source: ../data/raw
-        target: /usr/local/data
+        source: ../data/raw/
+        target: /usr/local/data/raw/
       - type: bind
         source: ../spark/app
         target: /usr/local/spark/app
@@ -309,8 +309,8 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - type: bind
-        source: ../data/raw
-        target: /usr/local/data
+        source: ../data/raw/
+        target: /usr/local/data/raw/
       - type: bind
         source: ../spark/app
         target: /usr/local/spark/app
@@ -334,8 +334,8 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - type: bind
-        source: ../data/raw
-        target: /usr/local/data
+        source: ../data/raw/
+        target: /usr/local/data/raw/
       - type: bind
         source: ../spark/app
         target: /usr/local/spark/app
