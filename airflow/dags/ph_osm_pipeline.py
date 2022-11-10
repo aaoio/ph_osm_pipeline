@@ -22,8 +22,8 @@ with DAG(
     mkdir_task = BashOperator(
         task_id='make_directories',
         bash_command="""
-mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
-/opt/airflow/data/wikidata/`date -d$LOGICAL_DATE +%Y_%m_%d`
+mkdir -p /usr/local/data/raw/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
+/usr/local/data/raw/wikidata/`date -d$LOGICAL_DATE +%Y_%m_%d`
 """,
         env={'LOGICAL_DATE': '{{ ds }}'}
     )
@@ -46,20 +46,11 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         provide_context=True
     )
 
-    sequence_range_task = PythonOperator(
-        task_id='get_sequence_range',
+    sequence_range_overpass_paths_task = PythonOperator(
+        task_id='get_sequence_range_and_overpass_paths',
         python_callable=sq.get_sequence_range,
-        op_args=['postgres_localhost'],
+        op_args=['postgres_localhost', overpass_task.output],
         do_xcom_push=True
-    )
-
-    download_repls_task = SparkSubmitOperator(
-        task_id='dl_repls',
-        application='/usr/local/spark/app/dl_replication_files.py',
-        name='spark_app',
-        conn_id='spark_local',
-        verbose=1,
-        application_args=[sequence_range_task.output]
     )
 
     stage_geog_task = PythonOperator(
@@ -75,23 +66,30 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
     load_geog_task = PostgresOperator(
         task_id='load_geog_dims',
         postgres_conn_id='postgres_localhost',
-        sql='sql/load.sql',
+        sql='sql/load_geog.sql',
     )
 
-    parse_repls_task = SparkSubmitOperator(
-        task_id='parse_repls',
+    repls_task = SparkSubmitOperator(
+        task_id='repls',
         application='/usr/local/spark/app/parse_replication_files.py',
         name='spark_app',
         conn_id='spark_local',
         jars='/usr/local/spark/resources/postgresql-42.5.0.jar',
         packages='com.databricks:spark-xml_2.12:0.15.0',
-        application_args=overpass_task.output,
+        application_args=sequence_range_overpass_paths_task.output,
         verbose=1
+    )
+    
+    set_sequence = PythonOperator(
+        task_id='set_sequence',
+        python_callable=sq.insert_last_repl_sequence,
+        op_args=['postgres_localhost'],
+        provide_context=True
     )
 
     
 
-build_db_task >> sequence_range_task >> download_repls_task >> parse_repls_task
+build_db_task >> sequence_range_overpass_paths_task >> repls_task >> set_sequence
 build_db_task >> stage_geog_task
 mkdir_task >> [overpass_task, wikidata_task] >> stage_geog_task >> load_geog_task
-overpass_task >> parse_repls_task
+overpass_task >> sequence_range_overpass_paths_task
