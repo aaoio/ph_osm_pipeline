@@ -9,14 +9,18 @@ CREATE TABLE IF NOT EXISTS staging."stg_osm_changesets"(
     comments_count INTEGER,
     created_at TIMESTAMP WITHOUT TIME ZONE,
     id BIGINT,
-    max_lat NUMERIC(10,7),
-    max_lon NUMERIC(10,7),
-    min_lat NUMERIC(10,7),
-    min_lon NUMERIC(10,7),
+    max_lat DOUBLE PRECISION,
+    max_lon DOUBLE PRECISION,
+    min_lat DOUBLE PRECISION,
+    min_lon DOUBLE PRECISION,
+    centroid_lat DOUBLE PRECISION,
+    centroid_lon DOUBLE PRECISION,
     num_changes INTEGER,
-    open BOOL,
     uid BIGINT,
-    username VARCHAR
+    username VARCHAR,
+    region_relation_id INTEGER,
+    province_relation_id INTEGER,
+    city_municipality_relation_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS staging."stg_regions"(
@@ -58,23 +62,30 @@ CREATE TABLE IF NOT EXISTS changesets."users"(
 );
 
 CREATE TABLE IF NOT EXISTS changesets."regions"(
-    region_relation_id INTEGER NOT NULL PRIMARY KEY,
+    region_id SERIAL PRIMARY KEY,
+    region_relation_id INTEGER NOT NULL,
     region_name VARCHAR NOT NULL,
     region_wikidata_item INTEGER NOT NULL,
-    region_population INTEGER NOT NULL
+    region_population INTEGER NOT NULL,
+    start_date DATE,
+    end_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS changesets."provinces"(
-    province_relation_id INTEGER NOT NULL PRIMARY KEY,
+    province_id SERIAL PRIMARY KEY,
+    province_relation_id INTEGER NOT NULL,
     province_name VARCHAR NOT NULL,
     province_wikidata_item INTEGER NOT NULL,
     province_population INTEGER NOT NULL,
     province_is_within VARCHAR,
-    province_is_within_wikidata_item INTEGER NOT NULL
+    province_is_within_wikidata_item INTEGER NOT NULL,
+    start_date DATE,
+    end_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS changesets."cities_municipalities"(
-    city_municipality_relation_id INTEGER NOT NULL PRIMARY KEY,
+    city_municipality_id SERIAL PRIMARY KEY,
+    city_municipality_relation_id INTEGER NOT NULL,
     city_municipality_name VARCHAR NOT NULL,
     city_municipality_wikidata_item INTEGER,
     city_municipality_type VARCHAR,
@@ -82,7 +93,9 @@ CREATE TABLE IF NOT EXISTS changesets."cities_municipalities"(
     city_municipality_population INTEGER,
     city_municipality_is_within VARCHAR,
     city_municipality_is_within_wikidata_item INTEGER,
-    city_municipality_area NUMERIC
+    city_municipality_area NUMERIC,
+    start_date DATE,
+    end_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS changesets."osm_changesets"(
@@ -97,12 +110,12 @@ CREATE TABLE IF NOT EXISTS changesets."osm_changesets"(
     min_lon NUMERIC(10,7),
     centroid_lat NUMERIC(10,7),
     centroid_lon NUMERIC(10,7),
-    city_municipality_relation_id INTEGER,
-    province_relation_id INTEGER,
-    region_relation_id INTEGER,
+    city_municipality_id INTEGER,
+    province_id INTEGER,
+    region_id INTEGER,
     PRIMARY KEY (changeset_id),
     FOREIGN KEY (user_id) REFERENCES changesets."users" (user_id),
-    FOREIGN KEY (city_municipality_relation_id) REFERENCES changesets."cities_municipalities" (city_municipality_relation_id),
-    FOREIGN KEY (province_relation_id) REFERENCES changesets."provinces" (province_relation_id),
-    FOREIGN KEY (region_relation_id) REFERENCES changesets."regions" (region_relation_id)
+    FOREIGN KEY (city_municipality_id) REFERENCES changesets."cities_municipalities" (city_municipality_id),
+    FOREIGN KEY (province_id) REFERENCES changesets."provinces" (province_id),
+    FOREIGN KEY (region_id) REFERENCES changesets."regions" (region_id)
 );

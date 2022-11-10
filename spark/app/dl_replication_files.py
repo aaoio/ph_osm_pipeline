@@ -4,14 +4,9 @@ from pyspark.sql import SparkSession
 import requests
 import sys
 
-spark = (SparkSession
-    .builder
-    .getOrCreate()    
-)
+REPL = '/usr/local/data/raw/repl/'
 
-DATA_DIR = '/usr/local/data'
-
-sequences = str(sys.argv[1]).split(' ')
+sequences = sys.argv[1].split(' ')
 last_db_sequence = int(sequences[0])
 last_server_sequence = int(sequences[1])
 
@@ -32,7 +27,7 @@ def download_replication_file(sequence):
     + '.osm.gz'
     
     # Construct file download path
-    download_path = os.path.join(DATA_DIR, 'repl', f'{sequence}.osm.gz')
+    download_path = os.path.join(REPL, f'{sequence}.osm.gz')
     
     # Download file
     if not os.path.exists(download_path):
@@ -43,6 +38,12 @@ def download_replication_file(sequence):
                 f.write(replicationData.read())
         except Exception as e:
                 print(e)
+
+
+spark = (SparkSession
+    .builder
+    .getOrCreate()    
+)
 
 sequences_df = spark.range(last_db_sequence, last_server_sequence)
 sequences_df.foreach(lambda x: download_replication_file(x['id']))
