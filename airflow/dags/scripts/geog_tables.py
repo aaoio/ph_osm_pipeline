@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import re
 from scripts.paths import *
+from sqlalchemy.sql import text
 
 class GeogTables:
 
@@ -79,7 +80,7 @@ class GeogTables:
                 .str.startswith('relation/')
             df = df[relation_mask]
             df['properties.@id'] = df['properties.@id'].map(
-                lambda x: x[9:]
+                lambda x: x[9:] if pd.isna(x) == False else x
             )
             df['properties.wikidata'] = df['properties.wikidata'].map(
                 lambda x: x[1:] if pd.isna(x) == False else x
@@ -103,6 +104,12 @@ class GeogTables:
             'properties.wikidata',
             'population.value'
         ]]
+        r_df.columns = [
+            'region_relation_id',
+            'region_name',
+            'region_wikidata_item',
+            'region_population'
+        ]
         r_df.name = 'regions'
         return r_df
 
@@ -124,6 +131,14 @@ class GeogTables:
             'withinLabel.value',
             'within.value'
         ]]
+        p_df.columns = [
+            'province_relation_id',
+            'province_name',
+            'province_wikidata_item',
+            'province_population',
+            'province_is_within',
+            'province_is_within_wikidata_item'
+        ]
         p_df.name = 'provinces'
         return p_df
 
@@ -154,6 +169,18 @@ class GeogTables:
             'withinLabel.value',
             'within.value',
             'area.value'
+        ]
+
+        table_columns = [
+            'city_municipality_relation_id',
+            'city_municipality_name',
+            'city_municipality_wikidata_item',
+            'city_municipality_type',
+            'city_municipality_income_class',               
+            'city_municipality_population',
+            'city_municipality_is_within',
+            'city_municipality_is_within_wikidata_item',
+            'city_municipality_area',
         ]
 
         cm_df = pd.DataFrame([], columns=arranged_df_columns)
@@ -192,6 +219,7 @@ class GeogTables:
         merge_on_isin = merge_on_isin[arranged_df_columns]
 
         cm_df = pd.concat([cm_df, merge_on_isin], ignore_index=True)
+        cm_df.columns = table_columns
         cm_df.name = 'cities_municipalities'
         return cm_df
 
@@ -223,10 +251,12 @@ def geog_dims(wikidata_paths_list, overpass_paths_list,
     dfs = [regions_table, provinces_table, cities_municipalities_table]
 
     for df in dfs:
+        engine.execute(text(f'TRUNCATE TABLE staging.stg_{df.name}').\
+            execution_options(autocommit=True))
         df.to_sql(
             f'stg_{df.name}',
             engine,
             schema='staging',
-            if_exists='replace',
+            if_exists='append',
             index=False
         )

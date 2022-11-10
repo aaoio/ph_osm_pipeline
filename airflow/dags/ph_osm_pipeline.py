@@ -29,7 +29,7 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
     )
 
     build_db_task = PostgresOperator(
-        task_id='build_db_task',
+        task_id='build_db',
         postgres_conn_id='postgres_localhost',
         sql='sql/db_build.sql',
     )
@@ -47,13 +47,13 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
     )
 
     sequence_range_task = PythonOperator(
-        task_id='sequence_range_task',
+        task_id='get_sequence_range',
         python_callable=sq.get_sequence_range,
         op_args=['postgres_localhost'],
         do_xcom_push=True
     )
 
-    download_repls = SparkSubmitOperator(
+    download_repls_task = SparkSubmitOperator(
         task_id='dl_repls',
         application='/usr/local/spark/app/dl_replication_files.py',
         name='spark_app',
@@ -62,8 +62,8 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
         application_args=[sequence_range_task.output]
     )
 
-    geog_task = PythonOperator(
-        task_id='geog_dims',
+    stage_geog_task = PythonOperator(
+        task_id='stage_geog_dims',
         python_callable=gt.geog_dims,
         op_args = [
             wikidata_task.output,
@@ -71,8 +71,27 @@ mkdir -p /opt/airflow/data/overpass/`date -d$LOGICAL_DATE +%Y_%m_%d` \
             'postgres_localhost'
         ]
     )
+
+    load_geog_task = PostgresOperator(
+        task_id='load_geog_dims',
+        postgres_conn_id='postgres_localhost',
+        sql='sql/load.sql',
+    )
+
+    parse_repls_task = SparkSubmitOperator(
+        task_id='parse_repls',
+        application='/usr/local/spark/app/parse_replication_files.py',
+        name='spark_app',
+        conn_id='spark_local',
+        jars='/usr/local/spark/resources/postgresql-42.5.0.jar',
+        packages='com.databricks:spark-xml_2.12:0.15.0',
+        application_args=overpass_task.output,
+        verbose=1
+    )
+
     
 
-build_db_task >> sequence_range_task >> download_repls
-build_db_task >> geog_task
-mkdir_task >> [overpass_task, wikidata_task] >> geog_task
+build_db_task >> sequence_range_task >> download_repls_task >> parse_repls_task
+build_db_task >> stage_geog_task
+mkdir_task >> [overpass_task, wikidata_task] >> stage_geog_task >> load_geog_task
+overpass_task >> parse_repls_task
