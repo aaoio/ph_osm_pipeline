@@ -8,10 +8,9 @@ COPY sources.list /etc/apt/
 
 RUN apt-get update                             \
  && apt-get install -y --no-install-recommends \
-    ca-certificates curl firefox-esr openjdk-11-jdk wget\
+    ca-certificates curl firefox-esr openjdk-11-jdk\
  && rm -fr /var/lib/apt/lists/*                \
  && curl -L https://github.com/mozilla/geckodriver/releases/download/v0.32.0/geckodriver-v0.32.0-linux64.tar.gz | tar xz -C /usr/local/bin \
- && apt-get remove -y curl \
  && mkdir -m 772 /home/airflow/.cache \
  && chown -R airflow: ${AIRFLOW_HOME}
 
@@ -20,13 +19,12 @@ RUN export JAVA_HOME
 
 ENV SPARK_HOME /usr/local/spark
 RUN cd "/tmp" \
- && wget "https://dlcdn.apache.org/spark/spark-3.2.2/spark-3.2.2-bin-hadoop3.2.tgz" \
- && tar -xvzf "spark-3.2.2-bin-hadoop3.2.tgz" \
+ && curl -L https://dlcdn.apache.org/spark/spark-3.2.2/spark-3.2.2-bin-hadoop3.2.tgz | tar xz \
  && mkdir -p "${SPARK_HOME}/bin" \
  && mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" \
  && cp -a "spark-3.2.2-bin-hadoop3.2/bin/." "${SPARK_HOME}/bin/" \
  && cp -a "spark-3.2.2-bin-hadoop3.2/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars" \
- && rm "spark-3.2.2-bin-hadoop3.2.tgz"
+ && apt-get remove -y curl \
 
 RUN export SPARK_HOME
 ENV PATH $PATH:/usr/local/spark/bin
