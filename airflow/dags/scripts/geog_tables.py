@@ -251,8 +251,6 @@ def geog_dims(wikidata_paths_list, overpass_paths_list,
     dfs = [regions_table, provinces_table, cities_municipalities_table]
 
     for df in dfs:
-        engine.execute(text(f'TRUNCATE TABLE staging.stg_{df.name}').\
-            execution_options(autocommit=True))
         df.to_sql(
             f'stg_{df.name}',
             engine,
