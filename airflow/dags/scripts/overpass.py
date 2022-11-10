@@ -35,7 +35,7 @@ def get_national_geom(download_dir_now, now):
     with open(geojson_path, 'w') as f:
         geojson.dump(ph_geom, f)
 
-    return ph_geom
+    return geojson_path
 
 def get_overpass_turbo_geojson(query, download_dir_now, now):
     """
@@ -157,6 +157,6 @@ def extract_overpass(**kwargs):
         )
         filepaths.append(filepath)
     
-    get_national_geom(download_dir_now, datetime_now)
+    filepaths.append(get_national_geom(download_dir_now, datetime_now))
 
     return filepaths
