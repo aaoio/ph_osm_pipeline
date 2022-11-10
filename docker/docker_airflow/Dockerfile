@@ -24,7 +24,7 @@ RUN cd "/tmp" \
  && mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" \
  && cp -a "spark-3.2.2-bin-hadoop3.2/bin/." "${SPARK_HOME}/bin/" \
  && cp -a "spark-3.2.2-bin-hadoop3.2/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars" \
- && apt-get remove -y curl \
+ && apt-get remove -y curl
 
 RUN export SPARK_HOME
 ENV PATH $PATH:/usr/local/spark/bin
